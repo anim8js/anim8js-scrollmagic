@@ -12,16 +12,28 @@ Class.define( CallBuilder,
   init: function(getCalls)
   {
     this.calls = [];
+    this.initials = [];
+    this.finals = [];
 
     getCalls.call( this, this );
   },
   execute: function()
   {
-    var calls = this.calls;
-
-    for (var i = 0; i < calls.length; i++)
+    this.executeList( this.calls, arguments );
+  },
+  executeInitials: function()
+  {
+    this.executeList( this.initials, arguments );
+  },
+  executeFinals: function()
+  {
+    this.executeList( this.finals, arguments );
+  },
+  executeList: function(list, args)
+  {
+    for (var i = 0; i < list.length; i++)
     {
-      calls[ i ].apply( this, arguments );
+      list[ i ].apply( this, args );
     }
   },
   call: function(callback)
@@ -30,7 +42,19 @@ Class.define( CallBuilder,
 
     return this;
   },
-  callWith: function(context, getCalls)
+  initial: function(callback)
+  {
+    this.initials.push( callback );
+
+    return this;
+  },
+  final: function(callback)
+  {
+    this.finals.push( callback );
+
+    return this;
+  },
+  callWith: function(context, getCalls, getInitial, getFinal)
   {
     if (context)
     {
@@ -38,6 +62,22 @@ Class.define( CallBuilder,
       {
         getCalls.apply( context, arguments );
       });
+
+      if (getInitial)
+      {
+        this.initial(function()
+        {
+          getInitial.apply( context, arguments );
+        });
+      }
+
+      if (getFinal)
+      {
+        this.final(function()
+        {
+          getFinal.apply( context, arguments );
+        });
+      }
     }
 
     return this;

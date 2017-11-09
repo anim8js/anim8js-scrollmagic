@@ -38,6 +38,15 @@ Class.extend( CallDuringBuilder, CallBuilder,
         var attrimator = attrimators[ i ];
         var prop = properties[ i ];
         var value = attrimator.valueAtSearch( now, animator.frame[ prop ] );
+        if (value === false) {
+          var last = attrimator;
+          var lastTime = now;
+          while (last.next) {
+            lastTime -= last.totalTime();
+            last = last.next;
+          }
+          value = last.valueAt( lastTime, animator.frame[ prop ] );
+        }
         if (value !== false) {
           animator.updated[ prop ] = true;
           animator.frame[ prop ] = value;

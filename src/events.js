@@ -3,7 +3,7 @@
 // .transition('*', 'AFTER')     "enter"
 // .transition(null, 'DURING')    "start on during"
 // .transition('AFTER', 'DURING') "enter from after"
-Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
+Scene.transition = function(expectedPrevious, expectedCurrent, getCalls, onStateChange)
 {
   var builder = new CallEventBuilder(getCalls);
   var previous = Events.INITIAL;
@@ -13,6 +13,11 @@ Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
   {
     if (previous !== current)
     {
+      if (onStateChange)
+      {
+        onStateChange.call( this, current, previous, progress, builder );
+      }
+
       if (this.isEventMatch( previous, expectedPrevious ) &&
           this.isEventMatch( current, expectedCurrent ))
       {
@@ -77,6 +82,33 @@ Scene.startAfter = function(getCalls)
 Scene.startDuring = function(getCalls)
 {
   return this.transition( Events.INITIAL, Events.DURING, getCalls );
+};
+
+// Special Enter / Exit Events
+Scene.intro = function(getCalls)
+{
+  var onStateChange = function(current, previous, progress, builder)
+  {
+    if ((previous === Events.INITIAL && current === this.getBefore()) || current === Events.DURING)
+    {
+      builder.executeInitials( current, progress );
+    }
+  };
+
+  return this.transition( Events.ANY, Events.DURING, getCalls, onStateChange );
+};
+
+Scene.outro = function(getCalls)
+{
+  var onStateChange = function(current, previous, progress, builder)
+  {
+    if (previous === Events.INITIAL && current === this.getAfter())
+    {
+      builder.executeFinals( current, progress );
+    }
+  };
+
+  return this.transition( Events.DURING, Events.ANY, getCalls, onStateChange );
 };
 
 // Special During Event

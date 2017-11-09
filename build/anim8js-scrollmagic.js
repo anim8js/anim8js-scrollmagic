@@ -1,4 +1,4 @@
-/* anim8js-scrollmagic 1.0.2 - anim8 ScrollMagic by Philip Diffenderfer */
+/* anim8js-scrollmagic 1.0.3 - anim8 ScrollMagic by Philip Diffenderfer */
 // UMD (Universal Module Definition)
 (function (root, factory)
 {
@@ -116,7 +116,7 @@ Scene.getInvokeCallback = function(callback)
 // .transition('*', 'AFTER')     "enter"
 // .transition(null, 'DURING')    "start on during"
 // .transition('AFTER', 'DURING') "enter from after"
-Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
+Scene.transition = function(expectedPrevious, expectedCurrent, getCalls, onStateChange)
 {
   var builder = new CallEventBuilder(getCalls);
   var previous = Events.INITIAL;
@@ -126,6 +126,11 @@ Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
   {
     if (previous !== current)
     {
+      if (onStateChange)
+      {
+        onStateChange.call( this, current, previous, progress, builder );
+      }
+
       if (this.isEventMatch( previous, expectedPrevious ) &&
           this.isEventMatch( current, expectedCurrent ))
       {
@@ -190,6 +195,33 @@ Scene.startAfter = function(getCalls)
 Scene.startDuring = function(getCalls)
 {
   return this.transition( Events.INITIAL, Events.DURING, getCalls );
+};
+
+// Special Enter / Exit Events
+Scene.intro = function(getCalls)
+{
+  var onStateChange = function(current, previous, progress, builder)
+  {
+    if ((previous === Events.INITIAL && current === this.getBefore()) || current === Events.DURING)
+    {
+      builder.executeInitials( current, progress );
+    }
+  };
+
+  return this.transition( Events.ANY, Events.DURING, getCalls, onStateChange );
+};
+
+Scene.outro = function(getCalls)
+{
+  var onStateChange = function(current, previous, progress, builder)
+  {
+    if (previous === Events.INITIAL && current === this.getAfter())
+    {
+      builder.executeFinals( current, progress );
+    }
+  };
+
+  return this.transition( Events.DURING, Events.ANY, getCalls, onStateChange );
 };
 
 // Special During Event
@@ -311,16 +343,28 @@ Class.define( CallBuilder,
   init: function(getCalls)
   {
     this.calls = [];
+    this.initials = [];
+    this.finals = [];
 
     getCalls.call( this, this );
   },
   execute: function()
   {
-    var calls = this.calls;
-
-    for (var i = 0; i < calls.length; i++)
+    this.executeList( this.calls, arguments );
+  },
+  executeInitials: function()
+  {
+    this.executeList( this.initials, arguments );
+  },
+  executeFinals: function()
+  {
+    this.executeList( this.finals, arguments );
+  },
+  executeList: function(list, args)
+  {
+    for (var i = 0; i < list.length; i++)
     {
-      calls[ i ].apply( this, arguments );
+      list[ i ].apply( this, args );
     }
   },
   call: function(callback)
@@ -329,7 +373,19 @@ Class.define( CallBuilder,
 
     return this;
   },
-  callWith: function(context, getCalls)
+  initial: function(callback)
+  {
+    this.initials.push( callback );
+
+    return this;
+  },
+  final: function(callback)
+  {
+    this.finals.push( callback );
+
+    return this;
+  },
+  callWith: function(context, getCalls, getInitial, getFinal)
   {
     if (context)
     {
@@ -337,6 +393,22 @@ Class.define( CallBuilder,
       {
         getCalls.apply( context, arguments );
       });
+
+      if (getInitial)
+      {
+        this.initial(function()
+        {
+          getInitial.apply( context, arguments );
+        });
+      }
+
+      if (getFinal)
+      {
+        this.final(function()
+        {
+          getFinal.apply( context, arguments );
+        });
+      }
     }
 
     return this;
@@ -353,21 +425,60 @@ Class.extend( CallEventBuilder, CallBuilder,
 {
   animator: function(query, getCalls)
   {
-    return this.callWith( ScrollMagic.getAnimator( query ), getCalls );
+    return this.callWith( ScrollMagic.getAnimator( query ), getCalls, createAnimatorInitial( getCalls ), createAnimatorFinal( getCalls ) );
   },
   animators: function(query, getCalls)
   {
-    return this.callWith( ScrollMagic.getAnimators( query ), getCalls );
+    return this.callWith( ScrollMagic.getAnimators( query ), getCalls, createAnimatorInitial( getCalls ), createAnimatorFinal( getCalls ) );
   },
   player: function(player, getCalls)
   {
-    return this.callWith( player, getCalls );
+    return this.callWith( player, getCalls, createMovieInitial( getCalls ), createMovieFinal() );
   },
   movie: function(movie, getCalls)
   {
     return this.player( new anim8.MoviePlayer( movie ), getCalls );
   }
 });
+
+
+function createAnimatorInitial(getCalls)
+{
+  return function()
+  {
+    this.stop().restore();
+    getCalls.apply( this, arguments );
+    this.preupdate( 0 ).update( 0 ).apply().stop();
+  };
+}
+
+function createAnimatorFinal(getCalls)
+{
+  return function()
+  {
+    this.stop().restore();
+    getCalls.apply( this, arguments );
+    this.preupdate( 0 ).update( 0 ).end().apply();
+  };
+}
+
+function createMovieInitial(getCalls)
+{
+  return function()
+  {
+    getCalls.apply( this, arguments );
+
+    this.pause().apply( this.time, true );
+  };
+}
+
+function createMovieFinal()
+{
+  return function()
+  {
+    this.end( true, true );
+  };
+}
 
 
 function CallDuringBuilder(getCalls)
@@ -409,6 +520,15 @@ Class.extend( CallDuringBuilder, CallBuilder,
         var attrimator = attrimators[ i ];
         var prop = properties[ i ];
         var value = attrimator.valueAtSearch( now, animator.frame[ prop ] );
+        if (value === false) {
+          var last = attrimator;
+          var lastTime = now;
+          while (last.next) {
+            lastTime -= last.totalTime();
+            last = last.next;
+          }
+          value = last.valueAt( lastTime, animator.frame[ prop ] );
+        }
         if (value !== false) {
           animator.updated[ prop ] = true;
           animator.frame[ prop ] = value;
