@@ -61,7 +61,15 @@ Scene.onProgress = function(callback)
   var instance = this;
   var invokeCallback = function()
   {
-    callback.call( instance, instance.state(), instance.progress() );
+    var state = instance.state();
+    var progress = instance.progress();
+
+    if (instance.backwards)
+    {
+      progress = 1.0 - progress;
+    }
+
+    callback.call( instance, state, progress );
   };
 
   instance.on( 'progress.anim8js', invokeCallback );
