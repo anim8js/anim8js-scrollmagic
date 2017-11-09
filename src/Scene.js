@@ -4,7 +4,7 @@ var Events = {
   DURING: 'DURING',
   AFTER: 'AFTER',
   ANY: '*',
-  INITIAL: null
+  INITIAL: ''
 };
 
 Scene.setBackwards = function(backwards)
@@ -31,14 +31,12 @@ Scene.isEventMatch = function(actual, expected)
     case Events.ANY:
       return true;
     case Events.BEFORE:
-      expected = this.getBefore();
-      break;
+      return actual === this.getBefore();
     case Events.AFTER:
-      expected = this.getAfter();
-      break;
+      return actual === this.getAfter();
+    default:
+      return actual === expected;
   }
-
-  return actual == expected; // jshint ignore:line
 };
 
 Scene.onProgress = function(callback)

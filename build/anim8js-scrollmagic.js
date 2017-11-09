@@ -1,4 +1,4 @@
-/* anim8js-scrollmagic 1.0.1 - anim8 ScrollMagic by Philip Diffenderfer */
+/* anim8js-scrollmagic 1.0.2 - anim8 ScrollMagic by Philip Diffenderfer */
 // UMD (Universal Module Definition)
 (function (root, factory)
 {
@@ -38,7 +38,7 @@ var Events = {
   DURING: 'DURING',
   AFTER: 'AFTER',
   ANY: '*',
-  INITIAL: null
+  INITIAL: ''
 };
 
 Scene.setBackwards = function(backwards)
@@ -65,14 +65,12 @@ Scene.isEventMatch = function(actual, expected)
     case Events.ANY:
       return true;
     case Events.BEFORE:
-      expected = this.getBefore();
-      break;
+      return actual === this.getBefore();
     case Events.AFTER:
-      expected = this.getAfter();
-      break;
+      return actual === this.getAfter();
+    default:
+      return actual === expected;
   }
-
-  return actual == expected; // jshint ignore:line
 };
 
 Scene.onProgress = function(callback)
@@ -121,7 +119,7 @@ Scene.getInvokeCallback = function(callback)
 Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
 {
   var builder = new CallEventBuilder(getCalls);
-  var previous = null;
+  var previous = Events.INITIAL;
   var listener = expectedPrevious === Events.INITIAL ? 'onStart' : 'onProgress';
 
   return this[ listener ](function(current, progress)

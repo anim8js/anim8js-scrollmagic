@@ -6,7 +6,7 @@
 Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
 {
   var builder = new CallEventBuilder(getCalls);
-  var previous = null;
+  var previous = Events.INITIAL;
   var listener = expectedPrevious === Events.INITIAL ? 'onStart' : 'onProgress';
 
   return this[ listener ](function(current, progress)
