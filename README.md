@@ -12,6 +12,12 @@
 ```javascript
 new ScrollMagic.Scene({triggerElement: '#trigger', duration: '100%'})
   .addTo( controller )
+  // Generic Transitioning (any state to AFTER scene)
+  .transition('*', 'AFTER', function() {
+    this.animator('#element', function() {
+      this.queue('wiggle inf');
+    });
+  })
   // Triggered when transitioning from outside to inside scene
   .enter(function() {
     this.animator('#element', function() {
@@ -44,6 +50,10 @@ new ScrollMagic.Scene({triggerElement: '#trigger', duration: '100%'})
     this.animator('#box', function() {
       this.play('wiggle');
     });
+  })
+  // Multiple
+  listen('enter before *>AFTER', function() {
+    // Execute on enter, when we go before the scene, and when we go after the scene
   })
   // A short cut to a single call
   .animate('during', 'animator', '#box', 'play', 'wiggle')

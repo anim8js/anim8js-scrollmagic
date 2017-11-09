@@ -1,68 +1,85 @@
 
-Scene.after = function(getCalls)
+// .transition('*', 'DURING')     "enter"
+// .transition('*', 'AFTER')     "enter"
+// .transition(null, 'DURING')    "start on during"
+// .transition('AFTER', 'DURING') "enter from after"
+Scene.transition = function(expectedPrevious, expectedCurrent, getCalls)
 {
   var builder = new CallEventBuilder(getCalls);
-  var last = null;
+  var previous = null;
+  var listener = expectedPrevious === Events.INITIAL ? 'onStart' : 'onProgress';
 
-  return this.onProgress(function(state, progress)
+  return this[ listener ](function(current, progress)
   {
-    if (state !== last) {
-      if (state === this.getAfter()) {
-        builder.execute( state, last );
+    if (previous !== current)
+    {
+      if (this.isEventMatch( previous, expectedPrevious ) &&
+          this.isEventMatch( current, expectedCurrent ))
+      {
+        builder.execute( current, progress );
       }
-      last = state;
+
+      previous = current;
     }
   });
+};
+
+Scene.after = function(getCalls)
+{
+  return this.transition( Events.ANY, Events.AFTER, getCalls );
+};
+
+Scene.fromAfter = function(getCalls)
+{
+  return this.transition( Events.AFTER, Events.ANY, getCalls );
 };
 
 Scene.before = function(getCalls)
 {
-  var builder = new CallEventBuilder(getCalls);
-  var last = null;
+  return this.transition( Events.ANY, Events.BEFORE, getCalls );
+};
 
-  return this.onProgress(function(state, progress)
-  {
-    if (state !== last) {
-      if (state === this.getBefore()) {
-        builder.execute( state, last );
-      }
-      last = state;
-    }
-  });
+Scene.fromBefore = function(getCalls)
+{
+  return this.transition( Events.BEFORE, Events.ANY, getCalls );
 };
 
 Scene.enter = function(getCalls)
 {
-  var builder = new CallEventBuilder(getCalls);
-  var last = null;
-
-  return this.onProgress(function(state, progress)
-  {
-    if (state !== last) {
-      if (state === Events.DURING) {
-        builder.execute( state, last );
-      }
-      last = state;
-    }
-  });
+  return this.transition( Events.ANY, Events.DURING, getCalls );
 };
 
 Scene.exit = function(getCalls)
 {
-  var builder = new CallEventBuilder(getCalls);
-  var last = null;
-
-  return this.onProgress(function(state, progress)
-  {
-    if (state !== last) {
-      if (last && state !== Events.DURING) {
-        builder.execute( state, last );
-      }
-      last = state;
-    }
-  });
+  return this.transition( Events.DURING, Events.ANY, getCalls );
 };
 
+Scene.any = function(getCalls)
+{
+  return this.transition( Events.ANY, Events.ANY, getCalls );
+};
+
+Scene.start = function(getCalls)
+{
+  return this.transition( Events.INITIAL, Events.ANY, getCalls );
+};
+
+Scene.startBefore = function(getCalls)
+{
+  return this.transition( Events.INITIAL, Events.BEFORE, getCalls );
+};
+
+Scene.startAfter = function(getCalls)
+{
+  return this.transition( Events.INITIAL, Events.AFTER, getCalls );
+};
+
+Scene.startDuring = function(getCalls)
+{
+  return this.transition( Events.INITIAL, Events.DURING, getCalls );
+};
+
+// Special During Event
 Scene.during = function(getCalls)
 {
   var builder = new CallDuringBuilder(getCalls);
@@ -73,4 +90,37 @@ Scene.during = function(getCalls)
     builder.execute( progress, callCount );
     callCount++;
   });
+};
+
+// Multiple Events
+Scene.REGEX_SPLIT = /\s+/g;
+Scene.REGEX_TRANSITION = /(|DURING|AFTER|\*)>(|DURING|AFTER|\*)/i;
+
+Scene.listen = function(events, getCalls)
+{
+  if (events.split)
+  {
+    events = events.split( this.REGEX_SPLIT );
+  }
+
+  for (var i = 0; i < events.length; i++)
+  {
+    var eventMethod = events[ i ];
+
+    if (eventMethod in this)
+    {
+      this[ eventMethod ]( getCalls );
+    }
+    else
+    {
+      var matches = this.REGEX_TRANSITION.exec( eventMethod.toUpperCase() );
+
+      if (matches)
+      {
+        this.transition( matches[1], matches[2], getCalls );
+      }
+    }
+  }
+
+  return this;
 };

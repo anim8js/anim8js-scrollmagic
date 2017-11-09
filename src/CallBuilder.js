@@ -13,7 +13,7 @@ Class.define( CallBuilder,
   {
     this.calls = [];
 
-    getCalls.call( this );
+    getCalls.call( this, this );
   },
   execute: function()
   {
