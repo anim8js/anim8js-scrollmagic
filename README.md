@@ -72,6 +72,7 @@ This plugin works by detecting events relative to the current scene, and invokin
 a function which builds commands to play when the event is triggered.
 
 **Events (occurs when you...)**
+
 - `after`: go from inside the scene to AFTER, or if you land on the page AFTER the scene.
 - `fromAfter`: go from AFTER the scene to anywhere else
 - `before`: go from inside the scene to BEFORE or if you land on the page BEFORE the scene.
@@ -93,16 +94,19 @@ You can listen for events by using the event name as a function and passing a fu
 - `transition`: animate when from one state to another - the events above use this function
 
 **Build Commands**
+
 - `animator( subject or query, function which makes animator calls )`
 - `animators( subjects or query, function which makes animators calls )`
 - `movie( movie, function which makes movie player calls )`
 - `player( player, function which makes movie player calls )`
 
 **Quick Animate**
+
 This allows you to add animations in a shorthand manner:
 - `animate( event, build, subject, subject method, subject arguments... )`
 
 **Backwards**
+
 ScrollMagic works by having the user scroll down or to the right of a page. If
 you set a scene to backwards with `setBackwards( true )` then the BEFORE/AFTER and
 progress through a scene is swapped for anim8js functions. This allows you to have
