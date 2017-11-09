@@ -1,0 +1,59 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+section {
+  position: relative;
+}
+
+section .abs {
+  position: absolute;
+}
+
+section .seq * {
+  display: inline-block;
+  position: relative;
+}
+
+section.full {
+  height: 100vh;
+}
+
+section.half {
+  height: 50vh;
+}
+
+section .centered.hor {
+  text-align: center;
+}
+
+section .centered.hor.abs {
+  text-align: inherit;
+  width: 0;
+  left: 50%;
+  position: absolute;
+}
+
+section .centered.ver {
+  height: 0;
+  top: 50%;
+  position: relative;
+}
+
+section .centered.ver > * {
+  margin-top: -50%;
+}
+
+section:nth-child(even) {
+  background-color: #eee;
+}
+
+.overflow.hide {
+  overflow: hidden;
+}
+
+.overflow.show {
+  overflow: visible;
+}

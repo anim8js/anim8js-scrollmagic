@@ -21,7 +21,13 @@ var build = {
   output: './build/',
   include: [
     './src/_header.js',
-    './src/animate.js'
+    './src/Scene.js',
+    './src/events.js',
+    './src/animate.js',
+    './src/getters.js',
+    './src/CallBuilder.js',
+    './src/CallEventBuilder.js',
+    './src/CallDuringBuilder.js',
     './src/_footer.js'
   ]
 };

@@ -25,6 +25,7 @@
 
   var anim8s = anim8.anim8s;
   var Class = anim8.Class;
+  var AttrimatorMap = anim8.AttrimatorMap;
 
   var $animation = anim8.animation;
 
