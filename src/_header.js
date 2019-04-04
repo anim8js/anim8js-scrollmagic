@@ -4,7 +4,7 @@
   if (typeof define === 'function' && define.amd) // jshint ignore:line
   {
     // AMD. Register as an anonymous module.
-    define(['anim8', 'scrollmagic'], function(anim8, ScrollMagic) { // jshint ignore:line
+    define(['anim8js', 'scrollmagic'], function(anim8, ScrollMagic) { // jshint ignore:line
       return factory(anim8, ScrollMagic, root);
     });
   }
@@ -13,7 +13,7 @@
     // Node. Does not work with strict CommonJS, but
     // only CommonJS-like environments that support module.exports,
     // like Node.
-    module.exports = factory(require('anim8'), require('scrollmagic'), global);  // jshint ignore:line
+    module.exports = factory(require('anim8js'), require('scrollmagic'), global);  // jshint ignore:line
   }
   else
   {

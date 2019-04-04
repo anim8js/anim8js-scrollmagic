@@ -1,8 +1,9 @@
 {
   "name": "anim8js-scrollmagic",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "anim8 ScrollMagic",
   "author": "Philip Diffenderfer",
+  "main": "build/anim8js-scrollmagic.js",
   "license": "MIT",
   "repository": {
     "type": "git",
